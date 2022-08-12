@@ -1,19 +1,21 @@
-import functools
-import sys
-
-from flask import (Blueprint, flash, g, redirect, render_template, request, session, url_for)
+from flask import (Blueprint, flash, redirect, render_template, request, url_for)
 from flask_login import login_required, logout_user, current_user, login_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from . import db
-from . import login_manager
+from ... import db
+from ... import login_manager
 from application.models.user import User
 
-bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint(
+    'auth',
+    __name__,
+    template_folder='./templates',
+    url_prefix='/auth'
+)
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
-    if current_user is not None:
+    if current_user.is_authenticated:
         return redirect(url_for('hello'))
 
     if request.method == 'POST':
@@ -30,13 +32,18 @@ def register():
         elif not email:
             error = 'Email is required.'
 
+        # Attempt to get existing user
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user is not None:
+            error = 'Email is already in use.'
+
         if error is None:
             try:
                 user = User(
                     name = name,
-                    email = email
+                    email = email,
+                    password = generate_password_hash(password)
                 )
-                user.set_password(password)
 
                 db.session.add(user)
                 db.session.commit()
@@ -48,7 +55,7 @@ def register():
 
         flash(error)
 
-    return render_template('auth/register.html')
+    return render_template('register.html')
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
@@ -75,7 +82,7 @@ def login():
 
         flash(error)
 
-    return render_template('auth/login.html')
+    return render_template('login.html')
 
 @bp.route('/logout')
 @login_required

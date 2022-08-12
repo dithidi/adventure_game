@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import current_user, login_required, LoginManager
+from flask_login import LoginManager
 from dotenv import load_dotenv
 
 load_dotenv('.env')
@@ -31,14 +31,10 @@ def create_app():
     from . import models
     migrate.init_app(app, db)
 
-    # Register the authentication Blueprint
-    from . import auth
+    # Register the Blueprints
+    from .blueprints import home
+    from .blueprints import auth
+    app.register_blueprint(home.bp)
     app.register_blueprint(auth.bp)
-
-    # Simple router
-    @app.route('/')
-    @login_required
-    def hello():
-        return 'Hello, dudes.'
 
     return app

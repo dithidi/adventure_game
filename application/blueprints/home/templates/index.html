@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Greetings {{ user.name or 'Unknown' }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <h2>Here are your latest books!</h2>
+
+    {% if user.books %}
+        <ul>
+            {% for book in user.books %}
+                <li>{{ book.title }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div>Sorry...no books to see.</div>
+    {% endif %}
+{% endblock %}
